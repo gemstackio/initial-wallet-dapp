@@ -32,9 +32,9 @@ describe("WalletProj", () => {
 
         it("Should set the owner", async () => {
             const contractOwner = await walletProj.owner();
+            const contractDeployerAddress = await deployer.getAddress()
 
-            console.log(deployer.address)
-            expect(contractOwner).to.equal(deployer.address);
+            expect(contractOwner).to.equal(contractDeployerAddress);
         })
     })
 })
