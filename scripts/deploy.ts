@@ -1,18 +1,24 @@
 import { ethers } from "hardhat";
+import { Contract } from 'ethers';
+
+
+const tokens = (n: number) => {
+  return ethers.utils.parseUnits(n.toString(), 'ether')
+}
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
 
-  const lockedAmount = ethers.utils.parseEther("1");
+  const NAME: string = 'Wallet Project';
+  const SYMBOL: string = 'ETHD';
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
 
-  await lock.deployed();
+  const WalletProj = await ethers.getContractFactory("WalletProj");
 
-  console.log(`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+  const walletProj: Contract = await WalletProj.deploy(NAME, SYMBOL);
+  await walletProj.deployed();
+
+  console.log(`Deployed Domain Contract at: ${walletProj.address}\n`)
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
