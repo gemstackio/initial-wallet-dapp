@@ -28,7 +28,7 @@ contract WalletProj is ERC721{
         payable(msg.sender).transfer(this.getTotalContractAmount()); // send the amount in the smart contract back to the account requesting all funds
     }
 
-    function trasnferAmountToSomeone(uint _transferAmount, address _someone) public{
+    function transferAmountToSomeone(uint _transferAmount, address _someone) public{
         payable(_someone).transfer(_transferAmount);
     }
 
