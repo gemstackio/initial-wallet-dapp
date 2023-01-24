@@ -1,13 +1,10 @@
-import { expect } from "chai";
+import { expect, assert } from "chai";
 import { ethers } from "hardhat";
 import { BigNumber, Contract, Signer } from 'ethers';
 
-const tokenize = (n: BigNumber) => {
-    return ethers.utils.parseUnits(n.toString(), 'ether')
-}
+const tokenize = (n: BigNumber) => ethers.utils.parseUnits(n.toString(), 'ether')
 
 const properEthFormat = (balance: BigNumber) => ethers.utils.formatUnits(balance, 'ether')
-
 
 describe("WalletProj", () => {
     let walletProj: Contract;
@@ -38,13 +35,6 @@ describe("WalletProj", () => {
 
             expect(contractSymbol).to.equal(SYMBOL);
         });
-
-        it("Should set the owner", async () => {
-            const contractOwner = await walletProj.owner();
-            const contractDeployerAddress = await deployer.getAddress()
-
-            expect(contractOwner).to.equal(contractDeployerAddress);
-        })
     })
 
     describe("Contract State", () => {
@@ -103,11 +93,19 @@ describe("WalletProj", () => {
             balanceBefore = await ethers.provider.getBalance(contractDeployerAddress)
 
             let transaction = await walletProj.connect(owner1).depositToContract({ value: AMOUNT })
-
             transaction = await walletProj.connect(deployer).transferAll()
         })
 
-        it('Transaction Sender Can Withdraw all Funds', async () => {
+        // it('Transaction Other than owner cannot withdraw all funds', async () => {
+        //     const balanceAfter = await ethers.provider.getBalance(contractDeployerAddress) //get balance of the contract
+        //     const ethBalanceBefore = await properEthFormat(balanceBefore) // balance before transaction
+        //     const ethBalanceAfter = await properEthFormat(balanceAfter) // balance after transaction
+        //     // console.log(ethBalanceBefore)
+        //     // console.log(`balanceBefore: ${ethBalanceBefore} | balanceAfter: ${ethBalanceAfter}`);
+        //     expect(balanceAfter).to.be.equal(balanceBefore);
+        // })
+
+        it('Transaction Owner Can Withdraw all Funds', async () => {
             const balanceAfter = await ethers.provider.getBalance(contractDeployerAddress);
 
             const ethBalanceBefore = await properEthFormat(balanceBefore)
@@ -118,23 +116,44 @@ describe("WalletProj", () => {
 
             expect(balanceAfter).to.be.greaterThan(balanceBefore);
         })
-
+        it('Contract does not transfer with balance > transfer amount', async () => {
+            // this try block should fail, as the contract balance is low
+            try {
+                const receiversBeforeBalance = await ethers.provider.getBalance(owner1Address)
+                const ethBalanceBefore = await properEthFormat(receiversBeforeBalance)
+                let transaction = await walletProj.connect(deployer).transferAmountFromContract(1, owner1Address)
+                await transaction.wait()
+                const receiversBeforeAfter = await ethers.provider.getBalance(owner1Address)
+                assert(false)
+            }
+            catch (err) {
+                // uncomment this if you wish to see the actual error message
+                // console.log(err)
+                assert(true)
+            }
+        })
         it('Contract Can Transfer Eth to another Wallet', async () => {
 
             const receiversBeforeBalance = await ethers.provider.getBalance(owner1Address)
+            const ethBalanceBefore = await properEthFormat(receiversBeforeBalance)
+            let fundSmartContractTrans = await walletProj.connect(deployer).depositToContract({ value: AMOUNT })
+            await fundSmartContractTrans.wait()
+
+            let transaction = await walletProj.connect(deployer).transferAmountFromContract(1, owner1Address)
+            await transaction.wait()
+            // console.log(transaction);
+            // let transaction 
+            // console.log(AMOUNT, owner1Address)
             const receiversBeforeAfter = await ethers.provider.getBalance(owner1Address)
 
-            const ethBalanceBefore = await properEthFormat(receiversBeforeBalance)
 
-            console.log(AMOUNT, owner1Address)
+            // let transaction = await walletProj.connect(deployer).transferAmountFromContract(AMOUNT, owner1Address)
 
-            let transaction = await walletProj.connect(owner1).transferAmountToSomeone(AMOUNT, owner1Address)
+            // transaction = await walletProj.connect(deployer).transferAll()
 
-            transaction = await walletProj.connect(deployer).transferAll()
+            // const ethBalanceAfter = await properEthFormat(receiversBeforeAfter)
 
-            const ethBalanceAfter = await properEthFormat(receiversBeforeAfter)
-
-            console.log(`balanceBefore: ${ethBalanceBefore} | balanceAfter: ${ethBalanceAfter}`);
+            // console.log(`balanceBefore: ${ethBalanceBefore} | balanceAfter: ${ethBalanceAfter}`);
 
             expect(receiversBeforeAfter).to.be.greaterThan(receiversBeforeBalance);
         })

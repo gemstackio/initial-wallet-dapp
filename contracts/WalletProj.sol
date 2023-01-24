@@ -6,8 +6,18 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract WalletProj is ERC721{
     // Withdrawals only in the amount that was deposited by the person who likes to withdraw
-    address public owner;
+    address owner;
     // take deposits from everyone
+
+    modifier onlyOwner(){
+        require(msg.sender == owner, "Must be contract owner");
+        _;
+    }
+
+    modifier contractHasValidBalance(uint256 _transferAmount){
+        require(address(this).balance >= _transferAmount, "Contract must have a balance greater than or equal to the amount being transferred");
+        _;
+    }
 
     // because this is flagged a payable, it will pay to the smart contract and the smart contract will retain the balance
     constructor(string memory _name, string memory _symbol)
@@ -24,11 +34,15 @@ contract WalletProj is ERC721{
         return address(this).balance;
     }
 
-    function transferAll() public {
+    function transferAll() public onlyOwner {
         payable(msg.sender).transfer(this.getTotalContractAmount()); // send the amount in the smart contract back to the account requesting all funds
     }
 
-    function transferAmountToSomeone(uint _transferAmount, address _someone) public{
+    function transferAmountFromContract(uint _transferAmount, address _someone)
+    public
+    onlyOwner
+    contractHasValidBalance(_transferAmount)
+    {
         payable(_someone).transfer(_transferAmount);
     }
 
