@@ -1,4 +1,4 @@
-import { expect, assert } from "chai";
+import { expect } from "chai";
 import { ethers } from "hardhat";
 import { BigNumber, Contract, Signer } from 'ethers';
 
@@ -144,9 +144,16 @@ describe("WalletProj", () => {
 
             expect(receiversBeforeAfter).to.be.greaterThan(receiversBeforeBalance);
         })
+        it('Non-Owner account cannot transferAll ', async () => {
+            async function shouldFail() {
+                let transaction = await walletProj.connect(owner1).transferAll()
+                await transaction.wait()
+            }
+            await expect(shouldFail()).to.be.revertedWith("Must be contract owner");
+        })
     })
 
-    describe('Whitelisting', () => {
+    describe('Whitelisting Accounts functionality', () => {
 
         beforeEach(async () => {
             let whitelistAddressTxn = await walletProj.addAddressToWhitelist(contractDeployerAddress);
@@ -168,9 +175,13 @@ describe("WalletProj", () => {
         })
 
         it('Can\'t Add an Address that is Already Whitelisted', async () => {
+            // const shouldRevert = async () => await walletProj.addAddressToWhitelist(contractDeployerAddress)
 
-            await expect(walletProj.addAddressToWhitelist(contractDeployerAddress)).to.be.revertedWith("Address already whitelisted");
+            async function shouldRevert() {
+                return walletProj.addAddressToWhitelist(contractDeployerAddress)
+            }
 
+            await expect(shouldRevert()).to.be.revertedWith("Address already whitelisted");
         })
     })
 })
