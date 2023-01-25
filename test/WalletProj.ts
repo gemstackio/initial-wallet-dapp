@@ -2,6 +2,7 @@ import { expect, assert } from "chai";
 import { ethers } from "hardhat";
 import { BigNumber, Contract, Signer } from 'ethers';
 
+
 const tokenize = (n: BigNumber) => ethers.utils.parseUnits(n.toString(), 'ether')
 
 const properEthFormat = (balance: BigNumber) => ethers.utils.formatUnits(balance, 'ether')
@@ -10,6 +11,8 @@ describe("WalletProj", () => {
     let walletProj: Contract;
     let deployer: Signer;
     let owner1: Signer;
+    let contractDeployerAddress: string;
+    let owner1Address: string;
 
     const NAME: string = 'Wallet Project';
     const SYMBOL = 'ETHD';
@@ -22,6 +25,9 @@ describe("WalletProj", () => {
         const WalletProj = await ethers.getContractFactory(`WalletProj`);
 
         walletProj = await WalletProj.deploy("Wallet Project", "ETHD");
+
+        contractDeployerAddress = await deployer.getAddress()
+        owner1Address = await owner1.getAddress()
     })
 
     describe("Deployment", () => {
@@ -84,26 +90,14 @@ describe("WalletProj", () => {
     describe('Withdrawing Funds From Contract', () => {
         const AMOUNT: BigNumber = ethers.utils.parseUnits("10", 'ether')
         let balanceBefore: BigNumber;
-        let contractDeployerAddress: string;
-        let owner1Address: string;
 
         beforeEach(async () => {
-            contractDeployerAddress = await deployer.getAddress()
-            owner1Address = await owner1.getAddress()
+
             balanceBefore = await ethers.provider.getBalance(contractDeployerAddress)
 
             let transaction = await walletProj.connect(owner1).depositToContract({ value: AMOUNT })
             transaction = await walletProj.connect(deployer).transferAll()
         })
-
-        // it('Transaction Other than owner cannot withdraw all funds', async () => {
-        //     const balanceAfter = await ethers.provider.getBalance(contractDeployerAddress) //get balance of the contract
-        //     const ethBalanceBefore = await properEthFormat(balanceBefore) // balance before transaction
-        //     const ethBalanceAfter = await properEthFormat(balanceAfter) // balance after transaction
-        //     // console.log(ethBalanceBefore)
-        //     // console.log(`balanceBefore: ${ethBalanceBefore} | balanceAfter: ${ethBalanceAfter}`);
-        //     expect(balanceAfter).to.be.equal(balanceBefore);
-        // })
 
         it('Transaction Owner Can Withdraw all Funds', async () => {
             const balanceAfter = await ethers.provider.getBalance(contractDeployerAddress);
@@ -117,21 +111,25 @@ describe("WalletProj", () => {
             expect(balanceAfter).to.be.greaterThan(balanceBefore);
         })
         it('Contract does not transfer with balance > transfer amount', async () => {
-            // this try block should fail, as the contract balance is low
-            try {
-                const receiversBeforeBalance = await ethers.provider.getBalance(owner1Address)
-                const ethBalanceBefore = await properEthFormat(receiversBeforeBalance)
-                let transaction = await walletProj.connect(deployer).transferAmountFromContract(1, owner1Address)
-                await transaction.wait()
-                const receiversBeforeAfter = await ethers.provider.getBalance(owner1Address)
-                assert(false)
-            }
-            catch (err) {
-                // uncomment this if you wish to see the actual error message
-                // console.log(err)
-                assert(true)
-            }
+
+            await expect(walletProj.connect(deployer).transferAmountFromContract(1, owner1Address)).to.be.revertedWith("Contract must have a balance greater than or equal to the amount being transferred");
         })
+        // it('Contract does not transfer with balance > transfer amount', async () => {
+        //     // this try block should fail, as the contract balance is low
+        //     try {
+        //         const receiversBeforeBalance = await ethers.provider.getBalance(owner1Address)
+        //         const ethBalanceBefore = await properEthFormat(receiversBeforeBalance)
+        //         let transaction = await walletProj.connect(deployer).transferAmountFromContract(1, owner1Address)
+        //         await transaction.wait()
+        //         const receiversBeforeAfter = await ethers.provider.getBalance(owner1Address)
+        //         assert(false)
+        //     }
+        //     catch (err) {
+        //         // uncomment this if you wish to see the actual error message
+        //         // console.log(err)
+        //         assert(true)
+        //     }
+        // })
         it('Contract Can Transfer Eth to another Wallet', async () => {
 
             const receiversBeforeBalance = await ethers.provider.getBalance(owner1Address)
@@ -141,21 +139,38 @@ describe("WalletProj", () => {
 
             let transaction = await walletProj.connect(deployer).transferAmountFromContract(1, owner1Address)
             await transaction.wait()
-            // console.log(transaction);
-            // let transaction 
-            // console.log(AMOUNT, owner1Address)
+
             const receiversBeforeAfter = await ethers.provider.getBalance(owner1Address)
 
-
-            // let transaction = await walletProj.connect(deployer).transferAmountFromContract(AMOUNT, owner1Address)
-
-            // transaction = await walletProj.connect(deployer).transferAll()
-
-            // const ethBalanceAfter = await properEthFormat(receiversBeforeAfter)
-
-            // console.log(`balanceBefore: ${ethBalanceBefore} | balanceAfter: ${ethBalanceAfter}`);
-
             expect(receiversBeforeAfter).to.be.greaterThan(receiversBeforeBalance);
+        })
+    })
+
+    describe('Whitelisting', () => {
+
+        beforeEach(async () => {
+            let whitelistAddressTxn = await walletProj.addAddressToWhitelist(contractDeployerAddress);
+            await whitelistAddressTxn.wait();
+        })
+
+        it('Can Add Address to Whitelist', async () => {
+            let isAddressWhitelisted = await walletProj.checkIfWhitelisted(contractDeployerAddress);
+
+            expect(isAddressWhitelisted).to.be.true;
+        })
+
+        it('Can Remove Address from Whitelist', async () => {
+            let removeAddressFromWhitelist = await walletProj.removeAddressFromWhitelist(contractDeployerAddress)
+
+            let isAddressWhitelisted = await walletProj.checkIfWhitelisted(contractDeployerAddress);
+
+            expect(isAddressWhitelisted).to.be.false;
+        })
+
+        it('Can\'t Add an Address that is Already Whitelisted', async () => {
+
+            await expect(walletProj.addAddressToWhitelist(contractDeployerAddress)).to.be.revertedWith("Address already whitelisted");
+
         })
     })
 })

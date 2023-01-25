@@ -9,6 +9,8 @@ contract WalletProj is ERC721{
     address owner;
     // take deposits from everyone
 
+    mapping(address => bool) public whitelistedAddresses;
+
     modifier onlyOwner(){
         require(msg.sender == owner, "Must be contract owner");
         _;
@@ -19,16 +21,18 @@ contract WalletProj is ERC721{
         _;
     }
 
-    // because this is flagged a payable, it will pay to the smart contract and the smart contract will retain the balance
+    modifier addressIsNotWhiteListed(address _address){
+        require(!whitelistedAddresses[_address], "Address already whitelisted");
+        _;
+    }
+
     constructor(string memory _name, string memory _symbol)
         ERC721(_name, _symbol)
     {
         owner = msg.sender;
     }
 
-    function depositToContract() public payable{
-
-    }
+    function depositToContract() public payable{}
 
     function getTotalContractAmount() public view returns(uint){
         return address(this).balance;
@@ -44,6 +48,21 @@ contract WalletProj is ERC721{
     contractHasValidBalance(_transferAmount)
     {
         payable(_someone).transfer(_transferAmount);
+    }
+
+    function addAddressToWhitelist(address _address) public onlyOwner addressIsNotWhiteListed(_address){
+        require(_address != address(0), "Invalid address");
+
+        whitelistedAddresses[_address] = true;
+    }
+
+    function removeAddressFromWhitelist(address _address) public onlyOwner {
+        require(whitelistedAddresses[_address], "Address not found in whitelist");
+        delete whitelistedAddresses[_address];
+    }
+
+    function checkIfWhitelisted(address _address) public view returns (bool) {
+        return whitelistedAddresses[_address];
     }
 
     // can also do this too, might be the better way:
