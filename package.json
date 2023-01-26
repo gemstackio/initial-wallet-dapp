@@ -7,5 +7,11 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.1",
     "ethers": "^5.7.2"
+  },
+  "scripts": {
+    "web": "cd ./web && npm start",
+    "web-test": "cd ./web && npm test",
+    "node": "npx hardhat node;",
+    "node-test": "npx hardhat test"
   }
 }
