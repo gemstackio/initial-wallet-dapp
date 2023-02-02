@@ -12,6 +12,7 @@
     "web": "cd ./web && npm start",
     "web-test": "cd ./web && npm test",
     "node": "npx hardhat node;",
-    "node-test": "npx hardhat test"
+    "node-test": "npx hardhat test",
+    "deploy": "npx hardhat run scripts/deploy.ts --network localhost"
   }
 }

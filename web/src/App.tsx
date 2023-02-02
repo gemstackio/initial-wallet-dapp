@@ -16,6 +16,10 @@ interface IConfig {
   }
 }
 
+interface INetwork {
+
+}
+
 const config: IConfig = require('./config.json');
 
 function App() {
@@ -49,7 +53,7 @@ function App() {
     // console.log(config);
 
 
-    // const walletProjContract = new ethers.Contract(config[network?.chainId].WalletProj.address, WalletProj, provider)
+    const walletProjContract = new ethers.Contract(config[network?.chainId].WalletProj.address, WalletProj, provider)
   };
 
   useEffect(() => {
