@@ -114,11 +114,14 @@ function App() {
       <h1>
         {account}
       </h1>
+      <div className='bttn-container'>
 
-      <button onClick={getAddressBalance}>Click to get account Balance</button>
-      <button onClick={handleGetProvider}>Click to get Provider</button>
-      <button onClick={connectToSmartContract}>Click to Connect to Smart Contract</button>
-      <button onClick={getContractBalance}>Click to Contract Balance</button>
+
+        {/* <button onClick={getAddressBalance}>Click to get account Balance</button> */}
+        <button onClick={handleGetProvider}>1. Click to get Provider</button>
+        <button onClick={connectToSmartContract}>2. Click to Connect to Smart Contract</button>
+        <button onClick={getContractBalance}>3. Click to Contract Balance</button>
+      </div>
 
     </div>
   );
