@@ -11,7 +11,6 @@ async function main() {
   const NAME: string = 'Wallet Project';
   const SYMBOL: string = 'ETHD';
 
-
   const WalletProj = await ethers.getContractFactory("WalletProj");
 
   const walletProj: Contract = await WalletProj.deploy(NAME, SYMBOL);
