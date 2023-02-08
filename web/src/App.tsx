@@ -28,26 +28,30 @@ const App = () => {
   // const [provider, setProvider] = useState<providers.Provider>();
   const [contract, setContract] = useState<ethers.Contract>();
   const [networkId, setNetworkId] = useState<number>();
-  const [mainAccount, setMainAccount] = useState<string>();
+  const [currentMetaMaskAccount, setCurrentMetaMaskAccount] = useState<string>();
   const [signer, setSigner] = useState<Signer>();
 
-  const properEthFormat = (balance: BigNumber) => ethers.utils.formatEther(balance)
+  const properEthFormat = (balance: BigNumber): string => ethers.utils.formatEther(balance)
 
-  const getContractBalance = async () => {
-    const contractTotal = await contract?.getTotalContractAmount();
+  const getContractBalance = async (): Promise<string> => {
+    const contractTotal: BigNumber = await contract?.getTotalContractAmount();
+    const properFormattedBalance = properEthFormat(contractTotal);
     console.log(properEthFormat(contractTotal));
-    return contractTotal;
+    return properFormattedBalance;
   }
 
-  const depositToContract = async () => {
-    console.log(mainAccount);
+  const depositToContract = async (): Promise<void> => {
 
     const AMOUNT = ethers.utils.parseUnits('10', 'ether');
     if (typeof signer === 'object' && signer !== undefined) {
       // Connecting the contract with the signer
       const connectedContract = await contract?.connect(signer);
       const transaction = await connectedContract?.depositToContract({ value: AMOUNT });
-      transaction.wait();
+      console.log(transaction);
+
+      transaction.wait().then(() => {
+        console.log(`Transaction complete! Hash: ${transaction.hash}`)
+      });
     }
   };
 
@@ -64,25 +68,26 @@ const App = () => {
   }, []);
 
   // Then this useEffect is listening for a state change to happen to the provider variable
-  // Once a change is detected it then runs the code to obtain the networkId and contract interface
   useEffect(() => {
     const connectToRest = async () => {
-
+      // Once a change is detected it then runs the code to:
       if (typeof provider === 'object' && provider !== undefined) {
-        // Get the ID
+        // 1. Obtain the networkId
         const id = await getNetworkId(provider);
         setNetworkId(id);
 
-        // Connect to the smart contract
+        // Connect to the smart contract and receive a Contract interface
         const contractConnection = new ethers.Contract(config[id].WalletProj.address, ABI.abi, provider);
         setContract(contractConnection);
 
+        // 3. The current account in metaMask
         // Grabbing the list of signers from MetaMask
         // This is a readonly list that can be used to see which accounts are loaded
         // We can not use this to connect to a smart contract
         const accounts = await provider?.listAccounts();
-        setMainAccount(accounts[0]);
+        setCurrentMetaMaskAccount(accounts[0]);
 
+        // 4. Creates a singer object that we can use to connect to smart contracts and send transaction
         // Creating a signer object so that we are able to eventually connect to a smart contract as the current signer in MetaMask
         const grabSigner = await provider?.getSigner();
         setSigner(grabSigner);
@@ -101,7 +106,7 @@ const App = () => {
 
 
       <Button callBack={getContractBalance} title={"Click to Contract Balance"} />
-      <Button callBack={depositToContract} title={"Signer"} />
+      <Button callBack={depositToContract} title={"Send Eth to Contract"} />
 
     </div>
   );
