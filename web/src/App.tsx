@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import IConfig from './config.json'
 import ABI from './abis/WalletProj.json'
 import Button from './components/Button';
+import SendFunds from './components/SendFunds';
 
 
 interface IConfig {
@@ -40,9 +41,10 @@ const App = () => {
     return properFormattedBalance;
   }
 
-  const depositToContract = async (): Promise<void> => {
+  const depositToContract = async (amount: string): Promise<void> => {
 
-    const AMOUNT = ethers.utils.parseUnits('10', 'ether');
+    const AMOUNT = ethers.utils.parseUnits(amount, 'ether');
+
     if (typeof signer === 'object' && signer !== undefined) {
       // Connecting the contract with the signer
       const connectedContract = await contract?.connect(signer);
@@ -98,6 +100,7 @@ const App = () => {
   }, [provider]);
 
 
+
   return (
     <div className="App">
       <h1>Connected to Smart Contract!</h1>
@@ -106,7 +109,15 @@ const App = () => {
 
 
       <Button callBack={getContractBalance} title={"Click to Contract Balance"} />
-      <Button callBack={depositToContract} title={"Send Eth to Contract"} />
+      {/* <Button callBack={depositToContract} title={"Send Eth to Contract"} /> */}
+
+      <div>
+        <br />
+        <br />
+        <br />
+      </div>
+
+      <SendFunds callBack={depositToContract} />
 
     </div>
   );
