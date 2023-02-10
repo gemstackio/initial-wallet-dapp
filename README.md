@@ -11,3 +11,13 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 npx hardhat run scripts/deploy.ts
 ```
+
+
+Make sure to run `npm install` in both the root directory and the `web` directory
+
+run the node 
+`npx hardhat node`
+deploy scripts
+`npx hardhat run script/deploy.ts`
+run react server
+`cd web && npm start`
