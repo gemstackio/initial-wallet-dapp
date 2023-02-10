@@ -1,10 +1,17 @@
-import { useRef } from "react";
+import { dir } from "console";
+import { Contract, ethers } from "ethers";
+import { useContext, useRef } from "react";
 
 interface SendFundsProps {
     callBack: Function;
+    signer: ethers.Signer | undefined;
+    contract: Contract | undefined;
 }
 
-const SendFunds = ({ callBack }: SendFundsProps) => {
+const SendFunds = ({ callBack, contract, signer }: SendFundsProps) => {
+
+    console.dir(signer)
+
     // Using a useRef here instead of useState because there is no need for a state variable sense we do not care about the value other than providing it to our callBack
     // We only need state for values we need to constantly track
     // Also stops us from causing multiple re-renders
@@ -12,7 +19,7 @@ const SendFunds = ({ callBack }: SendFundsProps) => {
 
     const submitForm = (e: React.FormEvent) => {
         e.preventDefault();
-        callBack(transactionAmountRef.current?.value);
+        callBack(transactionAmountRef.current?.value, contract, signer);
     }
 
     return (

@@ -15,7 +15,6 @@ const Button = ({ callBack, title, contract, setState }: ButtonProps) => {
         callBack(contract, setState);
     }
 
-    console.log("render")
     return (
         <button onClick={handleClick} > {title} </button>
 

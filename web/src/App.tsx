@@ -4,7 +4,7 @@ import IConfig from './config.json'
 import ABI from './abis/WalletProj.json'
 import Button from './components/Button';
 import SendFunds from './components/SendFunds';
-import { getContractBalance } from './utils/HelperFunctions';
+import { depositToContract, getContractBalance } from './utils/HelperFunctions';
 
 interface IConfig {
   [key: string]: {
@@ -46,24 +46,24 @@ const App = () => {
   //   return properFormattedBalance;
   // };
 
-  const depositToContract = async (amount: string): Promise<void> => {
-    const AMOUNT = ethers.utils.parseUnits(amount, 'ether');
+  // const depositToContract = async (amount: string): Promise<void> => {
+  //   const AMOUNT = ethers.utils.parseUnits(amount, 'ether');
 
-    if (typeof signer === 'object' && signer !== undefined) {
-      // Connecting the contract with the signer
-      const connectedContract = await contract?.connect(signer);
-      try {
-        // using our smart contract method to send 
-        const transaction = await connectedContract?.depositToContract({ value: AMOUNT });
-        console.log(transaction);
-        transaction.wait().then(() => {
-          console.log(`Transaction complete! Hash: ${transaction.hash}`)
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  };
+  //   if (typeof signer === 'object' && signer !== undefined) {
+  //     // Connecting the contract with the signer
+  //     const connectedContract = await contract?.connect(signer);
+  //     try {
+  //       // using our smart contract method to send 
+  //       const transaction = await connectedContract?.depositToContract({ value: AMOUNT });
+  //       console.log(transaction);
+  //       transaction.wait().then(() => {
+  //         console.log(`Transaction complete! Hash: ${transaction.hash}`)
+  //       });
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   }
+  // };
 
   // This first useEffect handles getting the initial provider info
   useEffect(() => {
@@ -109,20 +109,6 @@ const App = () => {
     connectToRest();
   }, [provider]);
 
-  // useEffect(() => {
-  //   const updateAccountFromMetamask = async (): Promise<void> => {
-  //     if (window.ethereum) {
-  //       // getting and setting the initial account from Metamask
-  //       const accounts = await window.ethereum.request({ 'method': 'eth_requestAccounts' });
-  //       setCurrentAccount(accounts[0]);
-  //       // Update the current address on account change in Metamask
-  //       window.ethereum.on("accountsChanged", (accounts: any) => {
-  //         setCurrentAccount(accounts[0]);
-  //       });
-  //     }
-  //   }
-  //   updateAccountFromMetamask();
-  // }, []);
 
   // TRANSFER ALL COMPONENT
   // interface IError{
@@ -197,10 +183,6 @@ const App = () => {
 
   }
 
-  console.log("App Render");
-
-
-
 
   return (
     <div className="App">
@@ -225,7 +207,7 @@ const App = () => {
         <br />
       </div>
 
-      <SendFunds callBack={depositToContract} />
+      <SendFunds callBack={depositToContract} signer={signer} contract={contract} />
     </div>
   );
 };
