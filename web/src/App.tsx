@@ -1,9 +1,10 @@
 import { BigNumber, ethers, providers, Signer } from 'ethers';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import IConfig from './config.json'
 import ABI from './abis/WalletProj.json'
 import Button from './components/Button';
 import SendFunds from './components/SendFunds';
+import { getContractBalance } from './utils/HelperFunctions';
 
 interface IConfig {
   [key: string]: {
@@ -27,7 +28,9 @@ const App = () => {
   // Based on the provider you use the interface provided changes accordingly. Meaning a method or property that is available on the Web3Provider can differ from the JsonRpcProvider
   // const [provider, setProvider] = useState<providers.Provider>();
   const [contract, setContract] = useState<ethers.Contract>();
-  const [networkId, setNetworkId] = useState<number>();
+
+  const networkId = useRef<number>();
+  // const [networkId, setNetworkId] = useState<number>();
   const [currentMetaMaskAccount, setCurrentMetaMaskAccount] = useState<string>();
   const [signer, setSigner] = useState<Signer>();
   const [contractBalance, setContractBalance] = useState<string>();
@@ -35,13 +38,13 @@ const App = () => {
 
   const properEthFormat = (balance: BigNumber): string => ethers.utils.formatEther(balance);
 
-  const getContractBalance = async (): Promise<string> => {
-    const contractTotal: BigNumber = await contract?.getTotalContractAmount();
-    const properFormattedBalance = properEthFormat(contractTotal);
-    console.log(properEthFormat(contractTotal));
-    setContractBalance(properFormattedBalance);
-    return properFormattedBalance;
-  };
+  // const getContractBalance = async (): Promise<string> => {
+  //   const contractTotal: BigNumber = await contract?.getTotalContractAmount();
+  //   const properFormattedBalance = properEthFormat(contractTotal);
+  //   console.log(properEthFormat(contractTotal));
+  //   setContractBalance(properFormattedBalance);
+  //   return properFormattedBalance;
+  // };
 
   const depositToContract = async (amount: string): Promise<void> => {
     const AMOUNT = ethers.utils.parseUnits(amount, 'ether');
@@ -69,36 +72,7 @@ const App = () => {
       const newProvider = await new ethers.providers.Web3Provider(window.ethereum);
       setProvider(newProvider);
     };
-    connectToProvider();
-  }, []);
 
-  // Then this useEffect is listening for a state change to happen to the provider variable
-  useEffect(() => {
-    const connectToRest = async (): Promise<void> => {
-      // Once a change is detected it then runs the code to:
-      if (typeof provider === 'object' && provider !== undefined) {
-        // 1. Obtain the networkId
-        const id = await getNetworkId(provider);
-        setNetworkId(id);
-        // Connect to the smart contract and receive a Contract interface
-        const contractConnection = new ethers.Contract(config[id].WalletProj.address, ABI.abi, provider);
-        setContract(contractConnection);
-        // 3. The current account in metaMask
-        // Grabbing the list of signers from MetaMask
-        // This is a readonly list that can be used to see which accounts are loaded
-        // We can not use this to connect to a smart contract
-        const accounts = await provider?.listAccounts();
-        setCurrentMetaMaskAccount(accounts[0]);
-        // 4. Creates a singer object that we can use to connect to smart contracts and send transaction
-        // Creating a signer object so that we are able to eventually connect to a smart contract as the current signer in MetaMask
-        const grabSigner = await provider?.getSigner();
-        setSigner(grabSigner);
-      }
-    };
-    connectToRest();
-  }, [provider]);
-
-  useEffect(() => {
     const updateAccountFromMetamask = async (): Promise<void> => {
       if (window.ethereum) {
         // getting and setting the initial account from Metamask
@@ -111,7 +85,44 @@ const App = () => {
       }
     }
     updateAccountFromMetamask();
+    connectToProvider();
   }, []);
+
+  // Then this useEffect is listening for a state change to happen to the provider variable
+  useEffect(() => {
+    const connectToRest = async (): Promise<void> => {
+      // Once a change is detected it then runs the code to:
+      if (typeof provider === 'object' && provider !== undefined) {
+        // 1. Obtain the networkId
+        const id = await getNetworkId(provider);
+        // setNetworkId(id);
+        networkId.current = id;
+        // 2. Connect to the smart contract and receive a Contract interface
+        const contractConnection = new ethers.Contract(config[id].WalletProj.address, ABI.abi, provider);
+        setContract(contractConnection);
+        // 3. Creates a singer object that we can use to connect to smart contracts and send transaction
+        // Creating a signer object so that we are able to eventually connect to a smart contract as the current signer in MetaMask
+        const grabSigner = await provider?.getSigner();
+        setSigner(grabSigner);
+      }
+    };
+    connectToRest();
+  }, [provider]);
+
+  // useEffect(() => {
+  //   const updateAccountFromMetamask = async (): Promise<void> => {
+  //     if (window.ethereum) {
+  //       // getting and setting the initial account from Metamask
+  //       const accounts = await window.ethereum.request({ 'method': 'eth_requestAccounts' });
+  //       setCurrentAccount(accounts[0]);
+  //       // Update the current address on account change in Metamask
+  //       window.ethereum.on("accountsChanged", (accounts: any) => {
+  //         setCurrentAccount(accounts[0]);
+  //       });
+  //     }
+  //   }
+  //   updateAccountFromMetamask();
+  // }, []);
 
   // TRANSFER ALL COMPONENT
   // interface IError{
@@ -186,21 +197,26 @@ const App = () => {
 
   }
 
+  console.log("App Render");
+
+
+
+
   return (
     <div className="App">
       <h1>Connected to Smart Contract!</h1>
       <ul>
-        {(!networkId) ? <li>loading network</li> : <li>Network ID: {networkId}</li>}
+        {(!networkId) ? <li>loading network</li> : <li>Network ID: {networkId.current}</li>}
         {(!contract) ? <li>loading contract</li> : <li>Contract Address: {contract.address}</li>}
         {(!contractBalance) ? <li>Click button</li> : <li>Current Contract Balance: {contractBalance} eth</li>}
         {(!currentAccount) ? <li>No Current Account Address</li> : <li>Current Account Address: {currentAccount}</li>}
 
       </ul>
-      <Button callBack={getContractBalance} title={"Click to Contract Balance"} />
-      <Button callBack={transferAllFromContract} title={"Click To Transfer All From Contract"} />
+      <Button callBack={getContractBalance} title={"Click to Contract Balance"} contract={contract} setState={setContractBalance} />
+      {/* <Button callBack={transferAllFromContract} title={"Click To Transfer All From Contract"} />
       <Button callBack={transferAnAmountFromContract} title={"Click To Transfer 10 Ether From Contract To Recipient"} />
       <Button callBack={addAddressToContractWhitelist} title={"Click To Whitelist an Account"} />
-      <Button callBack={checkIfAccountIsWhitelisted} title={"Click To Check If Account is Whitelisted"} />
+      <Button callBack={checkIfAccountIsWhitelisted} title={"Click To Check If Account is Whitelisted"} /> */}
       {/* <Button callBack={depositToContract} title={"Send Eth to Contract"} /> */}
 
       <div>
