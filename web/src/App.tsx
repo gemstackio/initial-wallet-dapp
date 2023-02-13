@@ -185,12 +185,6 @@ const App = () => {
 
       </ul>
       <Button callBack={getContractBalance} title={"Click to Contract Balance"} contract={contract} setState={setContractBalance} />
-      <Button
-        callBack={transferAllFromContract}
-        title={"Click To Transfer All From Contract"}
-        contract={contract}
-        provider={provider}
-      />
       {/* <Button callBack={transferAnAmountFromContract} title={"Click To Transfer 10 Ether From Contract To Recipient"} /> */}
       {/* <Button callBack={addAddressToContractWhitelist} title={"Click To Whitelist an Account"} /> */}
       {/* <Button callBack={checkIfAccountIsWhitelisted} title={"Click To Check If Account is Whitelisted"} /> */}
