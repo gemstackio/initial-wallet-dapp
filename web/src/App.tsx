@@ -4,7 +4,9 @@ import IConfig from './config.json'
 import ABI from './abis/WalletProj.json'
 import Button from './components/Button';
 import SendFunds from './components/SendFunds';
-import { depositToContract, getContractBalance } from './utils/HelperFunctions';
+import { depositToContract, getContractBalance, transferAllFromContract } from './utils/HelperFunctions';
+import DepositToContract from './components/ButtonActions/DepositToContract';
+import TransferAllToContract from './components/ButtonActions/TransferAllToContract';
 
 interface IConfig {
   [key: string]: {
@@ -123,17 +125,7 @@ const App = () => {
   //   message: string;
   // }
   // function transferAll() public onlyOwner
-  const transferAllFromContract = async (): Promise<void> => {
-    if (typeof signer === 'object' && provider !== undefined) {
-      // must put a try catch to catch errors
-      try {
-        let transaction = await contract?.connect(signer).transferAll();
-        transaction.wait().then(() => console.log(`Transaction complete! Hash: ${transaction.hash}`));
-      } catch (error: any) {
-        console.error();
-      }
-    }
-  }
+
 
   // function transferAmountFromContract(uint _transferAmount, address _someone) public onlyOwner contractHasValidBalance(_transferAmount)
   const transferAnAmountFromContract = async (): Promise<void> => {
@@ -176,11 +168,9 @@ const App = () => {
   }
 
   const checkIfAccountIsWhitelisted = async () => {
-
     const addressToAdd = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
     const isAddressWhitelisted: boolean = await contract?.checkIfWhitelisted(addressToAdd); ////.whitelistedAddresses(addressToAdd)
     console.log(isAddressWhitelisted);
-
   }
 
 
@@ -195,10 +185,15 @@ const App = () => {
 
       </ul>
       <Button callBack={getContractBalance} title={"Click to Contract Balance"} contract={contract} setState={setContractBalance} />
-      {/* <Button callBack={transferAllFromContract} title={"Click To Transfer All From Contract"} />
-      <Button callBack={transferAnAmountFromContract} title={"Click To Transfer 10 Ether From Contract To Recipient"} />
-      <Button callBack={addAddressToContractWhitelist} title={"Click To Whitelist an Account"} />
-      <Button callBack={checkIfAccountIsWhitelisted} title={"Click To Check If Account is Whitelisted"} /> */}
+      <Button
+        callBack={transferAllFromContract}
+        title={"Click To Transfer All From Contract"}
+        contract={contract}
+        provider={provider}
+      />
+      {/* <Button callBack={transferAnAmountFromContract} title={"Click To Transfer 10 Ether From Contract To Recipient"} /> */}
+      {/* <Button callBack={addAddressToContractWhitelist} title={"Click To Whitelist an Account"} /> */}
+      {/* <Button callBack={checkIfAccountIsWhitelisted} title={"Click To Check If Account is Whitelisted"} /> */}
       {/* <Button callBack={depositToContract} title={"Send Eth to Contract"} /> */}
 
       <div>
@@ -207,7 +202,14 @@ const App = () => {
         <br />
       </div>
 
-      <SendFunds callBack={depositToContract} signer={signer} contract={contract} />
+      {/* <SendFunds callBack={depositToContract} signer={signer} contract={contract} /> */}
+
+      <DepositToContract
+        contract={contract}
+        signer={signer}
+      />
+      <TransferAllToContract signer={signer} provider={provider} contract={contract} />
+
     </div>
   );
 };

@@ -10,7 +10,6 @@ interface SendFundsProps {
 
 const SendFunds = ({ callBack, contract, signer }: SendFundsProps) => {
 
-    console.dir(signer)
 
     // Using a useRef here instead of useState because there is no need for a state variable sense we do not care about the value other than providing it to our callBack
     // We only need state for values we need to constantly track
@@ -19,7 +18,7 @@ const SendFunds = ({ callBack, contract, signer }: SendFundsProps) => {
 
     const submitForm = (e: React.FormEvent) => {
         e.preventDefault();
-        callBack(transactionAmountRef.current?.value, contract, signer);
+        callBack(transactionAmountRef.current?.value, signer, contract);
     }
 
     return (

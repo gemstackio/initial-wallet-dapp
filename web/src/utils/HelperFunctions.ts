@@ -11,13 +11,15 @@ const getContractBalance = async (contract: Contract, setContractBalance: Functi
 };
 
 const depositToContract = async (amount: string, signer: ethers.Signer, contract: Contract): Promise<void> => {
+    console.log(signer);
+
     const AMOUNT = ethers.utils.parseUnits(amount, 'ether');
 
     if (typeof signer === 'object' && signer !== undefined) {
         // Connecting the contract with the signer
         const connectedContract = await contract?.connect(signer);
         try {
-            // using our smart contract method to send 
+            // using our smart contract method to send
             const transaction = await connectedContract?.depositToContract({ value: AMOUNT });
             console.log(transaction);
             transaction.wait().then(() => {
@@ -30,4 +32,20 @@ const depositToContract = async (amount: string, signer: ethers.Signer, contract
 };
 
 
-export { getContractBalance, depositToContract };
+const transferAllFromContract = async (signer: ethers.Signer, provider: ethers.providers.Web3Provider, contract: ethers.Contract): Promise<void> => {
+    console.log(signer);
+    console.log(provider);
+
+    if (typeof signer === 'object' && provider !== undefined) {
+        console.log("Fired");
+        // must put a try catch to catch errors
+        try {
+            let transaction = await contract?.connect(signer).transferAll();
+            transaction.wait().then(() => console.log(`Transaction complete! Hash: ${transaction.hash}`));
+        } catch (error: any) {
+            console.error();
+        }
+    }
+}
+
+export { getContractBalance, depositToContract, transferAllFromContract, properEthFormat };
