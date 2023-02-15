@@ -1,8 +1,9 @@
 import { BigNumber, Contract, ethers } from "ethers";
+import React from "react";
 
 const properEthFormat = (balance: BigNumber): string => ethers.utils.formatEther(balance);
 
-const getContractBalance = async (contract: Contract, setContractBalance: Function): Promise<string> => {
+const getContractBalance = async (contract: Contract, setContractBalance: React.Dispatch<React.SetStateAction<string>>): Promise<string> => {
     const contractTotal: BigNumber = await contract?.getTotalContractAmount();
     const properFormattedBalance = properEthFormat(contractTotal);
     console.log(properEthFormat(contractTotal));
