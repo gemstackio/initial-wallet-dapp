@@ -1,18 +1,16 @@
 {
-  "devDependencies": {
-    "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
-    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
-    "hardhat": "^2.12.6"
-  },
-  "dependencies": {
-    "@openzeppelin/contracts": "^4.8.1",
-    "ethers": "^5.7.2"
-  },
+  "name": "initial-wallet-dapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
   "scripts": {
     "web": "cd ./web && npm start",
     "web-test": "cd ./web && npm test",
-    "node": "npx hardhat node;",
-    "node-test": "npx hardhat test",
-    "deploy": "npx hardhat run scripts/deploy.ts --network localhost"
-  }
+    "node": "cd ./smart-contract && npx hardhat node;",
+    "node-test": "cd ./smart-contract && npx hardhat test",
+    "deploy": "cd ./smart-contract && npx hardhat run scripts/deploy.ts --network localhost"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
