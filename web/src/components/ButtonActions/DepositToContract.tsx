@@ -1,6 +1,5 @@
-import { dir } from "console";
 import { Contract, ethers } from "ethers";
-import { useContext, useRef } from "react";
+import { useRef } from "react";
 
 interface DepositToContractProps {
     contract: Contract | undefined;
